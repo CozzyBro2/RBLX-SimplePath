@@ -1,10 +1,10 @@
 --[[
 -------------------------------------------------------------------
-
 Created by: @V3N0M_Z
 Reference: https://v3n0m-z.github.io/RBLX-SimplePath/
 License: MIT
 
+(modified in current project by HashCollision)
 ---------------------------------------------------------------------
 ]]
 
@@ -193,13 +193,11 @@ function Path.GetNearestCharacter(fromPosition)
 end
 
 --[[ CONSTRUCTOR ]]--
-function Path.new(agent, agentParameters, override)
-	if not (agent and agent:IsA("Model") and agent.PrimaryPart) then
-		output(error, "Pathfinding agent must be a valid Model Instance with a set PrimaryPart.")
-	end
+function Path.Fill(info)
+    local model = info.model
 
 	local self = setmetatable({
-		_settings = override or DEFAULT_SETTINGS;
+		_settings = DEFAULT_SETTINGS,
 		_events = {
 			Reached = Instance.new("BindableEvent");
 			WaypointReached = Instance.new("BindableEvent");
@@ -207,9 +205,19 @@ function Path.new(agent, agentParameters, override)
 			Error = Instance.new("BindableEvent");
 			Stopped = Instance.new("BindableEvent");
 		};
-		_agent = agent;
-		_humanoid = agent:FindFirstChildOfClass("Humanoid");
-		_path = PathfindingService:CreatePath(agentParameters);
+		_agent = model;
+		_humanoid = info.humanoid,
+		_path = PathfindingService:CreatePath({
+
+			AgentHeight = info.agentHeight,
+			AgentRadius = info.agentRadius,
+
+			WaypointSpacing = info.agentSpacing or 4,
+			AgentCanJump = if info.noJump then nil else true,
+
+			Costs = info.agentCosts or {}
+
+		});
 		_status = "Idle";
 		_t = 0;
 		_position = {
@@ -231,6 +239,7 @@ function Path.new(agent, agentParameters, override)
 		end
 	end)
 
+    info.agent = self
 	return self
 end
 
